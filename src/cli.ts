@@ -1,31 +1,29 @@
-#!/usr/bin/env node
-import { runLinuxAnalysis } from './index.js';
+export function renderTextReport(report: any): string {
+  const lines: string[] = [];
+  lines.push(`[rea-anything-with-ai] target: ${report.target}`);
+  lines.push(`[rea-anything-with-ai] summary: ${report.summary}`);
+  lines.push(`[rea-anything-with-ai] platform: ${report.system.platform}`);
+  lines.push(`[rea-anything-with-ai] os-name: ${report.system.osName}`);
+  lines.push(`[rea-anything-with-ai] arch: ${report.system.arch}`);
+  lines.push(`[rea-anything-with-ai] kernel: ${report.system.kernel}`);
+  lines.push(`[rea-anything-with-ai] memory-gb: ${report.system.totalMemoryGB}`);
+  lines.push(`[rea-anything-with-ai] elf-detected: ${report.elf.isELF ? 'yes' : 'no'}`);
+  lines.push(`[rea-anything-with-ai] bitness: ${report.elf.bitness}`);
+  lines.push(`[rea-anything-with-ai] machine: ${report.elf.machine}`);
+  lines.push(`[rea-anything-with-ai] file-type: ${report.elf.fileType}`);
+  lines.push(`[rea-anything-with-ai] stripped: ${report.elf.stripped}`);
+  lines.push(`[rea-anything-with-ai] running-processes: ${report.runningProcesses.length}`);
 
-async function main() {
-  const args = process.argv.slice(2);
-  const targetArg = args.find((arg) => arg.startsWith('--target='));
-  const target = targetArg ? targetArg.split('=')[1] : args[0] ?? '/bin/ls';
-
-  console.log(`[linux-analysis] Target: ${target}`);
-
-  const report = await runLinuxAnalysis(target);
-
-  console.log(`[linux-analysis] Summary: ${report.summary}`);
-  console.log(`[linux-analysis] OS: ${report.system.platform} ${report.system.arch}`);
-  console.log(`[linux-analysis] Kernel: ${report.system.kernel}`);
-  console.log(`[linux-analysis] CPUs: ${report.system.cpus}`);
-  console.log(`[linux-analysis] Memory: ${report.system.totalMemoryGB} GB`);
-  console.log(`[linux-analysis] ELF detected: ${report.elf.isELF ? 'yes' : 'no'}`);
-  console.log(`[linux-analysis] Bitness: ${report.elf.bitness}`);
-  console.log(`[linux-analysis] Machine: ${report.elf.machine}`);
-  console.log(`[linux-analysis] File type: ${report.elf.fileType}`);
-
-  if (report.elf.error) {
-    console.warn(`[linux-analysis] Warning: ${report.elf.error}`);
+  if (report.elf.dependencies.length > 0) {
+    lines.push('[rea-anything-with-ai] dependencies:');
+    for (const dep of report.elf.dependencies) {
+      lines.push(`  - ${dep}`);
+    }
   }
+
+  return lines.join('\n');
 }
 
-main().catch((error) => {
-  console.error('[linux-analysis] Fatal error:', error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+export function renderJsonReport(report: any): string {
+  return JSON.stringify(report, null, 2);
+}

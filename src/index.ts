@@ -1,21 +1,23 @@
-import { analyzeELF } from './linux/elf-analyzer.js';
-import { collectSystemOverview, inspectProcStatus } from './linux/system-overview.js';
+import { analyzeELF } from './elf-analyzer.js';
+import { collectSystemOverview, inspectProcesses, inspectProcStatus } from './system-overview.js';
 
-export interface AnalysisReport {
+export interface AnalysisSummary {
   target: string;
   summary: string;
-  elf: ReturnType<typeof analyzeELF> extends Promise<infer T> ? T : never;
+  elf: Awaited<ReturnType<typeof analyzeELF>>;
   system: ReturnType<typeof collectSystemOverview>;
-  proc: ReturnType<typeof inspectProcStatus>;
+  processInfo: ReturnType<typeof inspectProcStatus>;
+  runningProcesses: ReturnType<typeof inspectProcesses>;
 }
 
-export async function runLinuxAnalysis(target: string): Promise<AnalysisReport> {
+export async function runLinuxAnalysis(target: string): Promise<AnalysisSummary> {
   const elf = await analyzeELF(target);
   const system = collectSystemOverview();
-  const proc = inspectProcStatus();
+  const processInfo = inspectProcStatus();
+  const runningProcesses = inspectProcesses(10);
 
   const summary = elf.isELF
-    ? `Target appears to be an ELF binary (${elf.bitness}, ${elf.machine}). It is suitable for Linux-native static inspection.`
+    ? `ELF binary detected (${elf.bitness}, ${elf.machine}). Target is suitable for local Linux-native analysis.`
     : `Target is not recognized as a standard ELF binary. It may be a script, resource, or non-native artifact.`;
 
   return {
@@ -23,6 +25,7 @@ export async function runLinuxAnalysis(target: string): Promise<AnalysisReport> 
     summary,
     elf,
     system,
-    proc
+    processInfo,
+    runningProcesses
   };
 }

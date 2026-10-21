@@ -1,92 +1,113 @@
 # REA Anything With AI
 
-A Linux-first reverse-engineering and software analysis toolkit inspired by REA, designed to be lighter, faster, and easier to run on Linux environments.
+A Linux-first AI-assisted reverse engineering and software analysis toolkit inspired by REA.
 
-This project is a clean, independent starting point for building an AI-assisted analysis workflow for binaries, applications, and runtime behavior on Linux. It focuses on efficiency, shell integration, readable output, and analyst-friendly workflows.
+This project is built for local analysis of Linux binaries, runtime behavior, process state, and security-relevant artifacts. It aims to be faster, cleaner, and more operationally friendly than a large desktop-only reverse-engineering environment.
 
-## Why this version
+## Why this project
 
-- Linux-first design and tooling assumptions
-- Faster local analysis workflows without heavy GUI dependencies
-- Cleaner command-line interfaces and structured JSON output
-- Better fit for CI, servers, containers, and lab environments
-- Built with modern Node.js + TypeScript for maintainability
+- Linux-first workflow
+- Strong CLI and automation support
+- Lightweight local analysis with minimal dependencies
+- Better fit for research labs, security workstations, and CI environments
+- Structured output for AI and automation pipelines
+
+## Core goals
+
+- Inspect ELF binaries and native artifacts
+- Collect OS and process metadata
+- Surface practical evidence from Linux systems
+- Produce consistent textual and JSON reports
+- Serve as a solid base for future AI-assisted reverse engineering agents
+
+## Project status
+
+This repository is a working foundation and an active Linux-focused starter project. It is intentionally designed to be extended with:
+
+- advanced ELF analysis
+- function and symbol extraction
+- string/section inspection
+- process and dependency mapping
+- agent/MCP integration
+- cloud or local AI workflows
 
 ## Attribution
 
-This project is inspired by the original REA project by morluto/rea.
+This project is inspired by the original REA repository from morluto/rea.
 
-Original repository:
+Original repo:
 https://github.com/morluto/rea
 
-The original project remains the reference for large-scale reverse-engineering tooling. This repo is a leaner, Linux-optimized starting point intended for independent deployment and experimentation.
-
-## Features
-
-- ELF binary inspection
-- Process and runtime inspection
-- Linux system overview collection
-- Structured evidence output
-- CLI-driven analysis flow
-- JSON export for automation and AI pipelines
-- Prepared for MCP/agent integration in later iterations
+This project is a Linux-optimized, independent implementation intended for local experimentation and deployment.
 
 ## Quick start
 
 ```bash
 npm install
 npm run build
-npm run dev -- --target /bin/ls
+npm run dev -- analyze --target /bin/ls --json
+```
+
+## Commands
+
+```bash
+npm run dev -- --help
+npm run dev -- analyze --target /bin/ls
+npm run dev -- analyze --target /bin/ls --json
 ```
 
 ## Example output
 
-```bash
-$ npm run dev -- --target /bin/ls
+```text
+$ npm run dev -- analyze --target /bin/ls
 
-[linux-analysis] Target: /bin/ls
-[linux-analysis] OS: Linux x86_64
-[linux-analysis] ELF detected: yes
-[linux-analysis] Bitness: 64-bit
-[linux-analysis] Machine: x86-64
-[linux-analysis] Stripped: unknown
-[linux-analysis] Process inspect: available
-[linux-analysis] Summary: binary is statically analyzable and suitable for local trace workflows
+[rea-anything-with-ai] target: /bin/ls
+[rea-anything-with-ai] platform: linux
+[rea-anything-with-ai] file-type: ELF 64-bit LSB pie executable x86-64
+[rea-anything-with-ai] bitness: 64-bit
+[rea-anything-with-ai] machine: x86-64
+[rea-anything-with-ai] summary: ELF binary detected and suitable for local native analysis.
+[rea-anything-with-ai] kernel: Linux 6.8.0-...
+[rea-anything-with-ai] processes: 8 entries inspected
 ```
 
-## Project structure
+## Architecture
 
 ```text
 src/
   cli.ts
   index.ts
+  core/
+    command-parser.ts
+    report-writer.ts
+    types.ts
   linux/
     elf-analyzer.ts
     process-inspector.ts
     system-overview.ts
-  core/
-    analysis-engine.ts
-    report-writer.ts
 ```
 
 ## Linux focus
 
-This version is optimized for Linux and assumes availability of standard tools such as:
+The default workflow assumes that standard Linux utilities are available, including:
 
 - /proc
-- ps
 - file
 - readelf
-- ldd
 - objdump
-- bash/sh for automation
+- ps
+- ldd
 
-It is intentionally designed to be easier to deploy in development, build, and security lab environments than a full GUI-driven reverse-engineering workstation.
+This is designed for local lab work, reverse engineering exercises, and environment analysis under Linux.
 
 ## Security and ethics
 
-This project is for lawful research, software analysis of systems you own or are authorized to inspect, and educational experimentation. Do not use it against systems or targets without explicit authorization.
+This tool is intended for lawful research, authorized analysis, education, and software interoperability work. Do not use it on systems or targets that you do not own or are not explicitly authorized to inspect.
 
 ## License
 
 MIT
+
+## Arabic summary
+
+هذا المشروع هو نسخة Linux-first ومُحسّنة من فكرة REA، موجهة لتحليل الملفات الثنائية، النظام، والعمليات محليًا. الهدف أن يكون أسهل في التشغيل، أسرع في الاستخدام، وأن يوفر تقارير واضحة قابلة للتحليل من قبل الذكاء الاصطناعي أو الإنسان.
