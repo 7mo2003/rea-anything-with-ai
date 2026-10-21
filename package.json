@@ -1,11 +1,14 @@
 {
   "name": "rea-anything-with-ai",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Linux-first AI-assisted reverse engineering toolkit inspired by REA.",
   "type": "module",
-  "private": true,
+  "private": false,
   "license": "MIT",
   "main": "dist/index.js",
+  "bin": {
+    "rea-anything-with-ai": "dist/cli.js"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/cli.ts",
@@ -18,7 +21,9 @@
     "binary-analysis",
     "security",
     "ai-analysis",
-    "cli"
+    "cli",
+    "elf",
+    "process-analysis"
   ],
   "engines": {
     "node": ">=22.0.0"

@@ -1,6 +1,17 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import os from 'node:os';
 import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import os from 'node:os';
+
+export interface SystemOverview {
+  platform: string;
+  osName: string;
+  arch: string;
+  kernel: string;
+  totalMemoryGB: number;
+  cpus: number;
+  hostname: string;
+  user: string;
+}
 
 export interface ProcessEntry {
   pid: number;
@@ -9,20 +20,22 @@ export interface ProcessEntry {
   memoryKB: number;
 }
 
-export function collectSystemOverview() {
-  const uname = execFileSync('uname', ['-a'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+export function collectSystemOverview(): SystemOverview {
+  const uname = execFileSync('uname', ['-a'], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe']
+  }).trim();
+
   const osRelease = existsSync('/etc/os-release') ? readFileSync('/etc/os-release', 'utf8') : '';
   const memInfo = existsSync('/proc/meminfo') ? readFileSync('/proc/meminfo', 'utf8') : '';
   const memMatch = memInfo.match(/MemTotal:\s+(\d+)\s+kB/);
   const totalMemoryGB = memMatch ? Number((Number(memMatch[1]) / 1024 / 1024).toFixed(2)) : 0;
-  const osName = (() => {
-    const match = osRelease.match(/^NAME="?(.+?)"?$/m);
-    return match ? match[1].trim() : process.platform;
-  })();
+
+  const osNameMatch = osRelease.match(/^NAME="?(.+?)"?$/m);
 
   return {
     platform: process.platform,
-    osName,
+    osName: osNameMatch ? osNameMatch[1].trim() : process.platform,
     arch: process.arch,
     kernel: uname,
     totalMemoryGB,
@@ -34,6 +47,7 @@ export function collectSystemOverview() {
 
 export function inspectProcStatus(pid: number | null = null): Record<string, string> {
   const procPath = pid === null ? '/proc/self/status' : `/proc/${pid}/status`;
+
   if (!existsSync(procPath)) {
     return { status: 'not-available' };
   }
@@ -59,11 +73,10 @@ export function inspectProcesses(limit = 10): ProcessEntry[] {
   }
 
   const entries: ProcessEntry[] = [];
+  for (const item of readdirSync('/proc')) {
+    if (!/^\d+$/.test(item)) continue;
 
-  for (const name of readdirSync('/proc')) {
-    if (!/^\d+$/.test(name)) continue;
-
-    const pid = Number(name);
+    const pid = Number(item);
     const statusPath = `/proc/${pid}/status`;
     const commPath = `/proc/${pid}/comm`;
 
@@ -89,14 +102,4 @@ export function inspectProcesses(limit = 10): ProcessEntry[] {
   }
 
   return entries;
-}
-
-export function getCurrentProcessSummary() {
-  const status = inspectProcStatus();
-  const pid = Number(status.Pid ?? process.pid);
-
-  return {
-    pid,
-    current: status
-  };
 }

@@ -1,29 +1,37 @@
-export function renderTextReport(report: any): string {
-  const lines: string[] = [];
-  lines.push(`[rea-anything-with-ai] target: ${report.target}`);
-  lines.push(`[rea-anything-with-ai] summary: ${report.summary}`);
-  lines.push(`[rea-anything-with-ai] platform: ${report.system.platform}`);
-  lines.push(`[rea-anything-with-ai] os-name: ${report.system.osName}`);
-  lines.push(`[rea-anything-with-ai] arch: ${report.system.arch}`);
-  lines.push(`[rea-anything-with-ai] kernel: ${report.system.kernel}`);
-  lines.push(`[rea-anything-with-ai] memory-gb: ${report.system.totalMemoryGB}`);
-  lines.push(`[rea-anything-with-ai] elf-detected: ${report.elf.isELF ? 'yes' : 'no'}`);
-  lines.push(`[rea-anything-with-ai] bitness: ${report.elf.bitness}`);
-  lines.push(`[rea-anything-with-ai] machine: ${report.elf.machine}`);
-  lines.push(`[rea-anything-with-ai] file-type: ${report.elf.fileType}`);
-  lines.push(`[rea-anything-with-ai] stripped: ${report.elf.stripped}`);
-  lines.push(`[rea-anything-with-ai] running-processes: ${report.runningProcesses.length}`);
+#!/usr/bin/env node
+import { parseArgs } from './core/command-parser.js';
+import { renderJsonReport, renderTextReport } from './core/report-writer.js';
+import { runLinuxAnalysis } from './linux/analysis.js';
 
-  if (report.elf.dependencies.length > 0) {
-    lines.push('[rea-anything-with-ai] dependencies:');
-    for (const dep of report.elf.dependencies) {
-      lines.push(`  - ${dep}`);
-    }
+function printHelp(): void {
+  console.log('Usage: rea-anything-with-ai [analyze] --target <path> [--json] [--verbose]');
+  console.log('');
+  console.log('Examples:');
+  console.log('  rea-anything-with-ai --help');
+  console.log('  rea-anything-with-ai analyze --target /bin/ls');
+  console.log('  rea-anything-with-ai analyze --target /bin/ls --json');
+}
+
+async function main(): Promise<void> {
+  const parsed = parseArgs(process.argv.slice(2));
+
+  if (parsed.command === 'help') {
+    printHelp();
+    return;
   }
 
-  return lines.join('\n');
+  const report = await runLinuxAnalysis(parsed.target);
+  const output = parsed.json ? renderJsonReport(report) : renderTextReport(report);
+
+  if (parsed.verbose) {
+    console.log('[rea-anything-with-ai] verbose mode enabled');
+  }
+
+  console.log(output);
 }
 
-export function renderJsonReport(report: any): string {
-  return JSON.stringify(report, null, 2);
-}
+main().catch((error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error('[rea-anything-with-ai] Fatal error:', message);
+  process.exit(1);
+});
